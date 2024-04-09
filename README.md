@@ -1,4 +1,5 @@
-Management Summary: Smart-Garden Projekt
+Diplomarbeit Teko Smart-Garden Projekt
+Management Summary:
 
 Das Smart-Garden-Projekt ist eine IoT-Anwendung mit dem Hauptfokus auf die effiziente Aufzucht und Ernte von Gemüse und Pflanzen für den Hausgebrauch. Es nutzt IoT-Technologie, um die Bewässerung, Beleuchtung und Überwachung von Pflanzen automatisch zu steuern und zu optimieren.
 
