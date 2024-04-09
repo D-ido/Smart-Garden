@@ -31,6 +31,6 @@ Das Ziel dieses Projekts ist es, Nutzern eine einfache und effektive Möglichkei
 
 Zukünftige Erweiterungen:
 
-Potenzielle Erweiterungen des Projekts könnten die Integration weiterer Sensoren zur Überwachung von Umgebungsbedingungen (z.B. Temperatur, Luftfeuchtigkeit und Beheizung) oder die Entwicklung eines Systems zur Fernsteuerung und Überwachung ausserhalb.
+Potenzielle Erweiterungen des Projekts könnten die Integration weiterer Sensoren zur Überwachung von Umgebungsbedingungen (z.B. Temperatur, Luftfeuchtigkeit und Beheizung) oder die Entwicklung eines Systems zur Fernsteuerung und Überwachung ausserhalb des Wohnbereiches
 
 Das Smart-Garden-Projekt bietet eine innovative Lösung für die Gemüsezucht zu Hause und zeigt das Potenzial von IoT-Technologie für die Unterstützung von Home-Garden und nachhaltigem Lebensstil.
