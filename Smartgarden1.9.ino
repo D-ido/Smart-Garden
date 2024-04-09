@@ -4,16 +4,19 @@
 #include <PubSubClient.h>
 #include <RTClib.h>
 
+// Definition der WLAN-Zugangsdaten und MQTT-Konfiguration
 #define ssid "FibreBox_X6-0E6AC7" // WLAN SSID
 #define password "YCX7JATHRQRMYNPURM" // WLAN Passwort
 #define mqtt_server "192.168.1.19" // MQTT Broker Adresse
 
+// MQTT Topics für verschiedene Steuerungen und Status
 #define switch_topic "esp8266/switch" // Topic für den Pumpenschalter
 #define light_topic "esp8266/light" // Topic für den Lichtschalter
 #define status_topic "esp8266/status" // Topic für den Status
 #define inTopic "esp8266/output" // Topic für den Input
 #define outTopic "esp8266/sensor" // Topic für den Output
 
+// Definition der Pins für Sensoren und Aktoren
 const int soilMoisturePin = A0; // Pin für den Bodenfeuchtesensor
 const int lightRelay = D5; // Pin für das Relais der Pflanzenbeleuchtung
 const int pumpRelay = D6;  // Pin für das Relais der Wasserpumpe
@@ -32,48 +35,48 @@ LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
 
 void setup() {
   Serial.begin(9600);
-  setup_wifi();
-  client.setServer(mqtt_server, 1884);
-  setup_rtc();
-  client.setCallback(callback);
-  lcd.init();
-  lcd.backlight();
-  pinMode(soilMoisturePin, INPUT);
-  pinMode(lightRelay, OUTPUT);
-  pinMode(pumpRelay, OUTPUT);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(fan1Pin, OUTPUT);
-  pinMode(fan2Pin, OUTPUT);
-  digitalWrite(lightRelay, HIGH);
-  digitalWrite(pumpRelay, HIGH);
+  setup_wifi(); // WLAN-Verbindung herstellen
+  client.setServer(mqtt_server, 1884); // MQTT-Broker konfigurieren
+  setup_rtc(); // RTC (Echtzeituhr) initialisieren
+  client.setCallback(callback); // MQTT-Callback-Funktion setzen
+  lcd.init(); // LCD initialisieren
+  lcd.backlight(); // LCD-Hintergrundbeleuchtung einschalten
+  pinMode(soilMoisturePin, INPUT); // Bodenfeuchtesensor als Eingang festlegen
+  pinMode(lightRelay, OUTPUT); // Relais für Licht als Ausgang festlegen
+  pinMode(pumpRelay, OUTPUT); // Relais für Pumpe als Ausgang festlegen
+  pinMode(trigPin, OUTPUT); // Ultraschallsensor Trig-Pin als Ausgang festlegen
+  pinMode(echoPin, INPUT); // Ultraschallsensor Echo-Pin als Eingang festlegen
+  pinMode(fan1Pin, OUTPUT); // Lüfter 1 als Ausgang festlegen
+  pinMode(fan2Pin, OUTPUT); // Lüfter 2 als Ausgang festlegen
+  digitalWrite(lightRelay, HIGH); // Licht-Relais ausschalten
+  digitalWrite(pumpRelay, HIGH); // Pumpen-Relais ausschalten
 }
 
 void loop() {
   if (!client.connected()) {
-    reconnect();
+    reconnect(); // Bei Verbindungsverlust mit MQTT-Broker erneut verbinden
   }
-  client.loop();
+  client.loop(); // MQTT-Client im Loop verarbeiten
 
   // Überprüfung der Counter-Werte für die verschiedenen Aktionen
   switch (counter) {
     case 5:
-      soilMoisture();
+      soilMoisture(); // Bodenfeuchte überprüfen
       break;
     case 10:
-      check_waterlevel();
+      check_waterlevel(); // Wasserstand überprüfen
       break;
     case 15:
-      light();
+      light(); // Lichtsteuerung basierend auf Uhrzeit
       break;
     case 20:
-      pump();
+      pump(); // Pumpensteuerung basierend auf Bodenfeuchte
       break;
     case 25:
-      check_fans();
+      check_fans(); // Lüftersteuerung basierend auf aktueller Minute
       break;
     case 30:
-      setup_rtc();
+      setup_rtc(); // RTC erneut initialisieren (optional)
       break;
     default:
       delay(1000);
@@ -81,7 +84,7 @@ void loop() {
   }
   counter++;
   if (counter > 30) {
-    counter = 0;
+    counter = 0; // Counter zurücksetzen, um den Zyklus zu wiederholen
   }
 }
 
@@ -111,30 +114,31 @@ void callback(char* topic, byte* message, unsigned int length) {
   }
   Serial.println();
 
+  // Verarbeitung eingehender Nachrichten basierend auf dem Topic
   if (String(topic) == inTopic) {
     Serial.print("Ändere Output zu ");
     if (messageTemp == "true") {
       Serial.println("an");
-      digitalWrite(pumpRelay, LOW);
-      client.publish(switch_topic, "AN");
+      digitalWrite(pumpRelay, LOW); // Pumpe einschalten
+      client.publish(switch_topic, "AN"); // Status veröffentlichen
       delay(200);
     } else if (messageTemp == "false") {
       Serial.println("aus");
-      digitalWrite(pumpRelay, HIGH);
-      client.publish(switch_topic, "AUS");
+      digitalWrite(pumpRelay, HIGH); // Pumpe ausschalten
+      client.publish(switch_topic, "AUS"); // Status veröffentlichen
       delay(200);
     }
   } else if (String(topic) == light_topic) {
     Serial.print("Ändere Licht zu ");
     if (messageTemp == "true") {
       Serial.println("an");
-      digitalWrite(lightRelay, LOW);
-      client.publish(switch_topic, "Licht AN");
+      digitalWrite(lightRelay, LOW); // Licht einschalten
+      client.publish(switch_topic, "Licht AN"); // Status veröffentlichen
       delay(200);
     } else if (messageTemp == "false") {
       Serial.println("aus");
-      digitalWrite(lightRelay, HIGH);
-      client.publish(switch_topic, "Licht AUS");
+      digitalWrite(lightRelay, HIGH); // Licht ausschalten
+      client.publish(switch_topic, "Licht AUS"); // Status veröffentlichen
       delay(200);
     }
   }
@@ -145,9 +149,9 @@ void reconnect() {
     Serial.print("Versuche MQTT Verbindung...");
     if (client.connect("SmartGardenClient")) {
       Serial.println("verbunden");
-      client.publish(status_topic, "Aktiv");
-      client.subscribe(inTopic);
-      client.subscribe(light_topic);
+      client.publish(status_topic, "Aktiv"); // Status veröffentlichen
+      client.subscribe(inTopic); // Auf Input-Topic abonnieren
+      client.subscribe(light_topic); // Auf Licht-Topic abonnieren
     } else {
       Serial.print("fehlgeschlagen, rc=");
       Serial.print(client.state());
@@ -164,7 +168,7 @@ void setup_rtc() {
   }
   if (rtc.lostPower()) {
     Serial.println("RTC verloren, setze die Zeit!");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Zeit setzen
   }
   DateTime now = rtc.now();
   Serial.print("Aktuelle Zeit: ");
@@ -194,7 +198,7 @@ void soilMoisture() {
   int sensorValue = analogRead(soilMoisturePin);
   int percentageSoilMoisture = map(sensorValue, 495, 696, 100, 0);
   client.publish(outTopic, String(percentageSoilMoisture).c_str());
-  char gauge [10];
+  char gauge[10];
   itoa(percentageSoilMoisture, gauge, 10);
   client.publish(outTopic, gauge);
   delay(500);
@@ -230,9 +234,9 @@ void light() {
   DateTime now = rtc.now();
   int currentHour = now.hour();
   if (currentHour >= 18 || currentHour < 6) {
-    digitalWrite(lightRelay, LOW);
+    digitalWrite(lightRelay, LOW); // Licht einschalten während der Nacht
   } else {
-    digitalWrite(lightRelay, HIGH);
+    digitalWrite(lightRelay, HIGH); // Licht ausschalten während des Tages
   }
 }
 
@@ -263,9 +267,9 @@ void pump() {
     lcd.print("Wasserpumpe");
     lcd.setCursor(0, 1);
     lcd.print("an");
-    digitalWrite(pumpRelay, LOW);
+    digitalWrite(pumpRelay, LOW); // Pumpe einschalten
     delay(10000);
-    digitalWrite(pumpRelay, HIGH);
+    digitalWrite(pumpRelay, HIGH); // Pumpe ausschalten
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Wasserpumpe");
@@ -279,7 +283,7 @@ void pump() {
 void check_fans() {
   DateTime now = rtc.now();
   int currentMinute = now.minute();
-  if (currentMinute % 120 == 0) {
+  if (currentMinute % 120 == 0) { // Alle 2 Stunden Lüfter einschalten
     digitalWrite(fan1Pin, HIGH);
     digitalWrite(fan2Pin, HIGH);
     delay(60000);
@@ -287,3 +291,4 @@ void check_fans() {
     digitalWrite(fan2Pin, LOW);
   }
 }
+
